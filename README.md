@@ -16,6 +16,30 @@ Symbolic Goal Learning for Human Instruction Following in Robot Manipulation
 - [Manipulation Experiment](#Manipulation-Experiment)
 
 ## Abstract
+This paper investigates robot manipulation based on human instruction with
+ambiguous requests.  The intent is to compensate for imperfect natural
+language via visual observations.
+Early methods built modular frameworks based on semantic parsing and task
+planning for producing sequences of actions from natural language requests. 
+Modern methods employ deep neural networks to automatically learn visual 
+and linguistic features and map to a sequence of low-level actions, in an
+end-to-end fashion. 
+These two approaches are blended to create a hybrid, modular framework: 
+it formulates instruction following as high-level symbolic goal learning
+via deep neural networks followed by low-level task planning via tradtional
+PDDL-based planners. 
+The vision-and-language learning network predicts the goal state of PDDL,
+which is sent to a planner for producing a task-completing action sequence. 
+For improving the flexibility of natural language, we further 
+incorporate implicit human intents with explicit human instructions.
+To learn generic features for vision and language, we propose to separately
+pretrain vision and language encoders on scene graph parsing and semantic
+textual similarity tasks.
+Benchmarking evaluates the impacts of different components of, or options
+for, the vision-and-language learning model and shows the effectiveness of
+pretraining strategies.
+Manipulation experiments conducted in the simulator AI2THOR show 
+the robustness of the framework to novel scenarios.
 
 ## Vision and Language Symbolic Goal Learning
 
