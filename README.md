@@ -107,6 +107,7 @@ assigned based on the following rules:
 - 5.0 if two sentences contain the same object and subject,
 - 3.3 if sentences match either subject or object, and 
 - 1.7 if sentences describe the same task.
+
 The dataset is also stored in [**SmartTech**]().
 
 ## Data Generation
