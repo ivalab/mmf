@@ -42,6 +42,12 @@ the robustness of the framework to novel scenarios.
 
 ## Vision and Language Symbolic Goal Learning
 
+### Installation
+
+### Usage
+
+### Development
+
 ## Scene Graph Parsing
 The potential issue of vague or ambiguous natural language is that it can't deterministically
 find a valid sequence of actions with specific objects.
@@ -106,3 +112,7 @@ The dataset is also stored in [**SmartTech**]().
 ## Data Generation
 
 ## Manipulation Experiment
+
+## License
+
+## Citation
