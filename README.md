@@ -57,6 +57,14 @@ and classifying their relationships.
 Code for pretraining scene graph parsing can be referred to [**here**]().
 
 ## Semantic Textual Similarity
+Beyond explicit human instruction, we further include implicit human intent as natural language input in this work.
+Implicit human intent, which commonly encodes the desire from human, requires incorporating environmental 
+information for interpreting its full meanings. 
+Even though being structured via quite different words, explicit instruction and implicit intent share
+the similar semantic meaning in the robotic task domain. 
+To learn such kind of embeddings for both types of natural language, we propose to 
+pretrain the linguistic encoder on semantic textual similarity task. 
+Code for pretraining BERT on semantic textual similarity task is provided [**here**]().
 
 ## Dataset
 
