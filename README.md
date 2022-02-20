@@ -44,6 +44,17 @@ the robustness of the framework to novel scenarios.
 ## Vision and Language Symbolic Goal Learning
 
 ## Scene Graph Parsing
+The potential issue of vague or ambiguous natural language is that it can't deterministically
+find a valid sequence of actions with specific objects.
+In human instruction following, vision and language are serving different roles.
+Vision, which contains the information of objects and their potential interactions in the scene,
+provides a potential search space for robotic tasks.
+Language helps narrow down or determine the final target task over the reasoned task space.
+Applying this insight in vision-and-langauge goal learning framework, we propose to first
+pretrain the visual encoder on scene graph parsing tasks.
+Scene graph parsing task in deep learning can be formulated as detecting a list of objects
+and classifying their relationships. 
+Code for pretraining scene graph parsing can be referred to [**here**]().
 
 ## Semantic Textual Similarity
 
