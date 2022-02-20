@@ -1,5 +1,4 @@
-# SGL
-Symbolic Goal Learning for Human Instruction Following in Robot Manipulation
+# SGL: Symbolic Goal Learning for Human Instruction Following in Robot Manipulation
 
 <img width="385" alt="1645388250(1)" src="https://user-images.githubusercontent.com/27162640/154862585-a4e5f8a7-01a6-4e06-ae1b-65f57e7653ec.png">
 
@@ -67,6 +66,42 @@ pretrain the linguistic encoder on semantic textual similarity task.
 Code for pretraining BERT on semantic textual similarity task is provided [**here**]().
 
 ## Dataset
+There are three proposed datasets in this work for vision-and-language symbolic goal learning,
+scene graph parsing and semantic textual learning,  respectively.
+### Symbolic Goal Learning Dataset
+For learning symbolic goal representation from vision and language, we propose a 
+dataset contains 32,070 images paired with either human instruction or intent.
+It covers five daily activities which are picking and placing, object delivery, cutting, cooking and cleaning. 
+The dataset is generated via [**AI2THOR**](https://ai2thor.allenai.org/) and the ground-truth
+PDDL goal state is automatically annotated. To be noticed, besides imperfect natural language, 
+we further consider the scenario with imperfect vision where partial or full objects involved
+in the task miss in the image. With such kind of image, the proposed network is required to 
+predict the missing object to be unknown. The dataset is stored in [**SmartTech**]().
+
+### Scene Graph Parsing
+The Scene Graph Parsing dataset is also generated via AI2THOR.
+It focuses on common daily objects with their object categories, affordances,
+attributes and relationships. 
+It covers 32 categories, 4 affordances and 5 attributes. 
+The ground-truth bounding box, category, affordance and attribute
+are automatically annotated during the generation process, which is labor-free.
+The dataset is also stored in [**SmartTech**]().
+
+### Semantic Textual Similarity
+The Semantic Textual Similarity dataset is generating for learning similar
+semantic embeddings for explicit human instructions and implicit human intents.
+Semantic meanings of different types of natural langauge are closely embedded in
+robotic task domain. There are five daily activities considered in the dataset, which
+are picking and placing, object delivery, cutting, cleaning and cooking.
+It contains 90,000 pairs of instruction and intent, which are generated based on
+a list of templates. To further improve the complexity and diversity, 
+sentences are paraphrased by [**Parrot**](https://github.com/PrithivirajDamodaran/Parrot_Paraphraser).
+To automatically rank the similarity of two sentences, three different scores are 
+assigned based on the following rules:
+- 5.0 if two sentences contain the same object and subject,
+- 3.3 if sentences match either subject or object, and 
+- 1.7 if sentences describe the same task.
+The dataset is also stored in [**SmartTech**]().
 
 ## Data Generation
 
