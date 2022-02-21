@@ -251,6 +251,33 @@ class LogitBinaryCrossEntropy(nn.Module):
         return loss * targets.size(1)
 
 
+@registry.register_loss("triple_cross_entropy")
+class TripleBinaryCrossEntropy(nn.Module):
+    """
+    This is used for computing three binary cross entropy losses for Symbolic Goal Learning.
+    """
+    def __init__(self):
+        super().__init__()
+    def forward(self, sample_list, model_output):
+        """Calculates and returns the binary cross entropy for logits
+        Args:
+            sample_list (SampleList): SampleList containing `targets` attribute.
+            model_output (Dict): Model output containing `scores` attribute.
+        Returns:
+            torch.FloatTensor: Float value for loss.
+        """
+        subject_scores = model_output["subject_scores"]
+        object_scores = model_output["object_scores"]
+        state_scores = model_output["state_scores"]
+        subject_targets = torch.squeeze(sample_list["subject_targets"])
+        object_targets = torch.squeeze(sample_list["object_targets"])
+        state_targets = torch.squeeze(sample_list["state_targets"])
+        loss_state = F.cross_entropy(state_scores, state_targets)
+        loss_subject = F.cross_entropy(subject_scores, subject_targets)
+        loss_object = F.cross_entropy(object_scores, object_targets)
+        return loss_state + loss_subject + loss_object
+
+
 @registry.register_loss("triple_logit_bce")
 class TripleLogitBinaryCrossEntropy(nn.Module):
     """
