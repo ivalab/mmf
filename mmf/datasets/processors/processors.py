@@ -532,6 +532,229 @@ class FastTextProcessor(VocabProcessor):
         self._load_fasttext_model(self.model_file)
         return super().__call__(item)
 
+@registry.register_processor("sgl_result")
+class SGLResultProcessor(BaseProcessor):
+    """Processor for generating answer scores for answers passed using VQA
+    accuracy formula. Using VocabDict class to represent answer vocabulary,
+    so parameters must specify "vocab_file". "num_answers" in parameter config
+    specify the max number of answers possible. Takes in dict containing
+    "answers" or "answers_tokens". "answers" are preprocessed to generate
+    "answers_tokens" if passed.
+
+    Args:
+        config (DictConfig): Configuration for the processor
+
+    Attributes:
+        vocab (VocabDict): Class representing answer vocabulary
+    """
+    def __init__(self, config, *args, **kwargs):
+        if not hasattr(config, "vocab_object_file") or not hasattr(config, "vocab_state_file"):
+            raise AttributeError(
+                "'vocab_object_file' and 'vocab_state_file' argument required, but not "
+                "present in AnswerProcessor's config"
+            )
+
+        self.vocab_obj = VocabDict(config.vocab_object_file, *args, **kwargs)
+        self.vocab_state = VocabDict(config.vocab_state_file, *args, **kwargs)
+        # Temporarily comment PAD, BOS and EOS tokens out since they are not used
+        # in the training process
+        # self.PAD_IDX = self.vocab.word2idx("<pad>")
+        # self.BOS_IDX = self.vocab.word2idx("<s>")
+        # self.EOS_IDX = self.vocab.word2idx("</s>")
+
+        # set UNK token index to be same for vocab of subjects and objects and vocab of state
+        self.UNK_IDX = self.vocab_obj.UNK_INDEX
+
+        # Set EOS to something not achievable if it is not there
+        # if self.EOS_IDX == self.UNK_IDX:
+        #     self.EOS_IDX = len(self.vocab)
+
+        self.preprocessor = None
+
+        if hasattr(config, "preprocessor"):
+            self.preprocessor = Processor(config.preprocessor)
+
+            if self.preprocessor is None:
+                raise ValueError(
+                    f"No processor named {config.preprocessor} is defined."
+                )
+
+    def __call__(self, item):
+        """Takes in dict with answers or answers_tokens, and returns back
+        a dict with answers (processed), "answers_indices" which point to
+        indices of the answers if present and "answers_scores" which represent
+        VQA style scores for the answers.
+
+        Args:
+            item (Dict): Dict containing answers or answers_tokens
+
+        Returns:
+            Dict: Processed answers, indices and scores.
+
+        """
+        tokens = []
+
+        if not isinstance(item, dict):
+            raise TypeError("'item' passed to processor must be a dict")
+
+        if "answer_tokens" in item:
+            tokens = item["answer_tokens"]
+        elif "answers" in item and item["answers"] is not None:
+            if self.preprocessor is None:
+                raise AssertionError(
+                    "'preprocessor' must be defined if you "
+                    "don't pass 'answer_tokens'"
+                )
+
+            tokens = [
+                self.preprocessor({"text": answer})["text"]
+                for answer in item["answers"]
+            ]
+        else:
+            raise AssertionError(
+                "'answers' or 'answer_tokens' must be passed"
+                " to answer processor in a dict"
+            )
+
+        # answer_indices: (3x1), subject index, state index and object index
+        # state_index = subject_index = object_index = torch.zeros(1, dtype=torch.long)
+        # object_index.fill_(self.vocab_obj.get_unk_index())
+        # subject_index.fill_(self.vocab_obj.get_unk_index())
+        # state_index.fill_(self.vocab_state.get_unk_index())
+
+        # assign state index
+        state_targets = torch.LongTensor(1)
+        subject_targets = torch.LongTensor(1)
+        object_targets = torch.LongTensor(1)
+        state_index = self.vocab_state.word2idx(tokens[0])
+        state_targets[0] = state_index
+        # assign subject index
+        subject_index = self.vocab_obj.word2idx(tokens[1])
+        subject_targets[0] = subject_index
+        # assign object index
+        object_index = self.vocab_obj.word2idx(tokens[2])
+        object_targets[0] = object_index
+
+        # state_targets = self.index_to_onehot(state_index, self.get_vocab_state_size())
+        # subject_targets = self.index_to_onehot(subject_index, self.get_vocab_object_size())
+        # object_targets = self.index_to_onehot(object_index, self.get_vocab_object_size())
+
+        return {
+            "answers": tokens,
+            "state_index": state_index,
+            "subject_index": subject_index,
+            "object_index": object_index,
+            "state_targets": state_targets,
+            "subject_targets": subject_targets,
+            "object_targets": object_targets,
+        }
+
+    def index_to_onehot(self, answer_index, vocab_size):
+        """Turn class index to one-hot vector for computing loss
+
+        Args:
+            answer_index (torch.LongTensor): tensor containing index of the class
+            vocab_size: length of the one-hot vector
+
+        Returns:
+            torch.FloatTensor: one-hot vector for bce loss
+
+        """
+        score = torch.zeros(vocab_size, dtype=torch.long)
+        score[answer_index] = 1.
+
+        return score
+
+    def get_vocab_size(self):
+        return self.get_vocab_object_size()
+
+    def get_vocab_object_size(self):
+        """Get vocab size of the answer vocabulary. Can also include
+        soft copy dynamic answer space size.
+
+        Returns:
+            int: size of the answer vocabulary
+
+        """
+        return self.vocab_obj.num_vocab
+
+    def get_true_vocab_object_size(self):
+        """True vocab size can be different from normal vocab size in some cases
+        such as soft copy where dynamic answer space is added.
+
+        Returns:
+            int: True vocab size.
+
+        """
+        return self.vocab_obj.num_vocab
+
+    def obj_word2idx(self, word):
+        """Convert a word to its index according to vocabulary
+
+        Args:
+            word (str): Word to be converted to index.
+
+        Returns:
+            int: Index of the word.
+
+        """
+        return self.vocab_obj.word2idx(word)
+
+    def obj_idx2word(self, idx):
+        """Index to word according to the vocabulary.
+
+        Args:
+            idx (int): Index to be converted to the word.
+
+        Returns:
+            str: Word corresponding to the index.
+
+        """
+        return self.vocab_obj.idx2word(idx)
+
+    def get_vocab_state_size(self):
+        """Get vocab size of the answer vocabulary. Can also include
+        soft copy dynamic answer space size.
+
+        Returns:
+            int: size of the answer vocabulary
+
+        """
+        return self.vocab_state.num_vocab
+
+    def get_true_vocab_state_size(self):
+        """True vocab size can be different from normal vocab size in some cases
+        such as soft copy where dynamic answer space is added.
+
+        Returns:
+            int: True vocab size.
+
+        """
+        return self.vocab_state.num_vocab
+
+    def state_word2idx(self, word):
+        """Convert a word to its index according to vocabulary
+
+        Args:
+            word (str): Word to be converted to index.
+
+        Returns:
+            int: Index of the word.
+
+        """
+        return self.vocab_state.word2idx(word)
+
+    def state_idx2word(self, idx):
+        """Index to word according to the vocabulary.
+
+        Args:
+            idx (int): Index to be converted to the word.
+
+        Returns:
+            str: Word corresponding to the index.
+
+        """
+        return self.vocab_state.idx2word(idx)
 
 @registry.register_processor("vqa_answer")
 class VQAAnswerProcessor(BaseProcessor):
