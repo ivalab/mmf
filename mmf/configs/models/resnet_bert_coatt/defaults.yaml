@@ -1,0 +1,76 @@
+model_config:
+  resnet_bert_coatt:
+    model_data_dir: ${env.data_dir}
+    # Type of bert model
+    bert_model_name: bert-base-uncased
+    direct_features_input: false
+    # Dimension of the embedding finally returned by the modal encoder
+    image_feature_dim: 512
+    # Dimension of the embedding finally returned by the text encoder
+    text_feature_dim: 768 
+
+    losses:
+    - type: triple_cross_entropy
+
+    text_encoder:
+      type: transformer
+      params:
+        bert_model_name: bert-base-uncased
+        hidden_size: 768 
+        num_hidden_layers: 12
+        num_attention_heads: 12
+        output_attentions: false
+        output_hidden_states: false
+        pretrained_model: false
+
+    image_encoder:
+      type: resnet34 
+      params:
+        pretrained: true
+        pool_type: avg
+        num_output_features: -1
+        pretrained_model: false
+
+    image_feature_embeddings:
+      params:
+        hidden_dim: 512 
+        num_attn: 8
+        dropout: 0.1
+        num_layers: 6
+
+
+    text_embeddings:
+      type: mcan
+      params:
+        hidden_dim: 512  
+        embedding_dim: 768 
+        num_attn: 8
+        dropout: 0.1
+        num_layers: 6
+        num_attn_pool: 1
+        num_feat: 2
+        model_data_dir: ${model_config.resnet_bert_coatt.model_data_dir}
+
+    classifier_state:
+      type: mlp
+      params:
+        in_dim: 1024 
+        out_dim: 5
+        hidden_dim: 256
+        num_layers: 2
+
+    classifier_subject:
+      type: mlp
+      params:
+        in_dim: 1024 
+        out_dim: 35 
+        hidden_dim: 256
+        num_layers: 2
+
+    classifier_object:
+      type: mlp
+      params:
+        in_dim: 1024 
+        out_dim: 35 
+        hidden_dim: 256
+        num_layers: 2

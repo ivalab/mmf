@@ -1,0 +1,67 @@
+model_config:
+  bert_only:
+    losses:
+    - type: triple_cross_entropy
+
+dataset_config:
+  sgl:
+    depth_first: true
+    use_features: false
+    zoo_requirements:
+      - sgl.defaults
+    images:
+      train:
+      - sgl/defaults/images/train
+      val:
+      - sgl/defaults/images/val
+      test:
+      - sgl/defaults/images/test
+    annotations:
+      train:
+      - sgl/defaults/annotations/imdb_train.npy
+      val:
+      - sgl/defaults/annotations/imdb_val.npy
+      test:
+      - sgl/defaults/annotations/imdb_test.npy
+    # Set to >= max number of features for the dataset
+    max_features: 1024
+
+optimizer:
+  type: adam_w_skip_params_with_zero_grad
+  params:
+    lr: 5e-05
+    weight_decay: 0
+    eps: 1e-09  
+    betas:
+    - 0.9
+    - 0.98
+
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 6444
+    num_training_steps: 128880
+
+evaluation:
+  metrics:
+  - sgl_accuracy
+  visualize: false
+
+training:
+  checkpoint_interval: 5000
+  lr_scheduler: true
+  clip_norm_mode: all
+  clip_gradients: false
+  max_grad_l2_norm: 5
+  max_updates: 128880
+  batch_size: 4
+  task_size_proportional_sampling: true
+  encoder_lr_multiply: 1
+  early_stop:
+    criteria: sgl/sgl_accuracy
+    minimize: false
+
+  find_unused_parameters: true
+
+env:
+  save_dir: ${env:MMF_SAVE_DIR, ./bert_only}

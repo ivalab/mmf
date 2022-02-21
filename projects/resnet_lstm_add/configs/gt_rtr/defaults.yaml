@@ -1,0 +1,35 @@
+optimizer:
+  type: Adamax
+  params:
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+
+evaluation:
+  metrics:
+  - sgl_accuracy
+  visualize: false
+
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 6444
+    num_training_steps: 128880
+
+training:
+  lr_scheduler: true
+  clip_norm_mode: all
+  clip_gradients: false
+  max_grad_l2_norm: 5
+  max_updates: 128880
+  batch_size: 4
+  task_size_proportional_sampling: true
+  encoder_lr_multiply: 1
+  early_stop:
+    criteria: sgl/sgl_accuracy
+    minimize: false
+
+  find_unused_parameters: true
+
+env:
+  save_dir: ${env:MMF_SAVE_DIR, ./resnet_lstm_add}

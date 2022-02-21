@@ -1,0 +1,37 @@
+model_config:
+  lstm_only:
+    losses:
+    - type: triple_cross_entropy
+
+    text_embedding:
+      embedding_dim: 300
+
+    lstm:
+      input_size: 300
+      hidden_size: 256
+      bidirectional: true
+      batch_first: true
+
+    classifier_state:
+      type: mlp
+      params:
+        in_dim: 512
+        out_dim: 5
+        hidden_dim: 256
+        num_layers: 2
+    
+    classifier_subject:
+      type: mlp
+      params:
+        in_dim: 512
+        out_dim: 35 
+        hidden_dim: 256 
+        num_layers: 2
+
+    classifier_object:
+      type: mlp
+      params:
+        in_dim: 512
+        out_dim: 35
+        hidden_dim: 256 
+        num_layers: 2

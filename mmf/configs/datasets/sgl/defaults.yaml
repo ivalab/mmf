@@ -1,0 +1,70 @@
+dataset_config:
+  gt_rtr:
+      data_dir: ${env.data_dir}/datasets
+      depth_first: false
+      fast_read: false
+      use_images: true
+      use_features: false
+      zoo_requirements:
+      - gt_rtr.defaults
+      images:
+        train:
+        - gt_rtr/defaults/images/train
+        val:
+        - gt_rtr/defaults/images/val
+        test:
+        - gt_rtr/defaults/images/test
+      annotations:
+        train:
+        - gt_rtr/defaults/annotations/imdb_train.npy
+        val:
+        - gt_rtr/defaults/annotations/imdb_val.npy
+        test:
+        - gt_rtr/defaults/annotations/imdb_test.npy
+      max_features: 100
+      processors:
+        image_processor:
+          type: torchvision_transforms
+          params:
+            transforms:
+            - type: Resize
+              params:
+                  size: [512, 512]
+            - type: CenterCrop
+              params:
+                size: [512, 512]
+            - ToTensor
+            - GrayScaleTo3Channels
+            - type: Normalize
+              params:
+                mean: [0.249, 0.249, 0.249]
+                std: [0.432, 0.433, 0.432]
+        text_processor:
+          type: bert_tokenizer
+          params:
+            tokenizer_config:
+              type: bert-base-uncased
+              params:
+                do_lower_case: true
+            mask_probability: 0
+            max_seq_length: 30
+        answer_processor:
+          type: rtr_result
+          params:
+            vocab_state_file: gt_rtr/defaults/extras/vocabs/state_gtrtr.txt
+            vocab_object_file: gt_rtr/defaults/extras/vocabs/object_gtrtr.txt
+            preprocessor:
+              type: simple_word
+              params: {}
+        context_processor:
+          type: fasttext
+          params:
+            download_initially: false
+            max_length: 50
+            model_file: wiki.en.bin
+
+      return_features_info: false
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false

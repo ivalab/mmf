@@ -1,0 +1,45 @@
+model_config:
+  resnet_lstm_concat:
+    losses:
+    - type: triple_cross_entropy
+
+    text_embedding:
+      embedding_dim: 300
+
+    lstm:
+      input_size: 300
+      hidden_size: 256
+      bidirectional: true
+      batch_first: true
+
+    image_encoder:
+      type: resnet34
+      params:
+        pretrained: true
+        pool_type: avg
+        num_output_features: 1 
+        pretrained_model: false
+
+    classifier_state:
+      type: mlp
+      params:
+        in_dim: 1024 
+        out_dim: 5
+        hidden_dim: 256
+        num_layers: 2
+    
+    classifier_subject:
+      type: mlp
+      params:
+        in_dim: 1024 
+        out_dim: 35 
+        hidden_dim: 256
+        num_layers: 2
+
+    classifier_object:
+      type: mlp
+      params:
+        in_dim: 1024 
+        out_dim: 35 
+        hidden_dim: 256
+        num_layers: 2

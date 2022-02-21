@@ -1,0 +1,75 @@
+model_config:
+  resnet_bert_tdatt_triple:
+    # Type of bert model
+    bert_model_name: bert-base-uncased
+    direct_features_input: false
+    # Dimension of the embedding finally returned by the modal encoder
+    image_feature_dim: 512 
+    # Dimension of the embedding finally returned by the text encoder
+    text_feature_dim: 768 
+
+    losses:
+    - type: triple_cross_entropy
+
+    text_encoder:
+      type: transformer
+      params:
+        bert_model_name: bert-base-uncased
+        hidden_size: 768 
+        num_hidden_layers: 12
+        num_attention_heads: 12
+        output_attentions: false
+        output_hidden_states: false
+        pretrained_model: false 
+
+
+    image_encoder:
+      type: resnet34_duo_output
+      params:
+        pretrained: true
+        pool_type: avg
+        num_output_features_grid: -1 
+        num_output_features_pool: 1 
+        pretrained_model: false
+
+    image_feature_embeddings:
+    - modal_combine:
+        type: non_linear_element_multiply
+        params:
+          dropout: 0
+          hidden_dim: 2048
+      normalization: softmax
+      transform:
+        type: linear
+        params:
+          out_dim: 1
+
+    image_text_modal_combine:
+      type: non_linear_element_multiply
+      params:
+        dropout: 0
+        hidden_dim: 2048
+
+    classifier_state:
+      type: mlp
+      params:
+        in_dim: 3328
+        out_dim: 5
+        hidden_dim: 256
+        num_layers: 2
+    
+    classifier_subject:
+      type: mlp
+      params:
+        in_dim: 3328 
+        out_dim: 35 
+        hidden_dim: 256
+        num_layers: 2
+
+    classifier_object:
+      type: mlp
+      params:
+        in_dim: 3328 
+        out_dim: 35 
+        hidden_dim: 256
+        num_layers: 2
