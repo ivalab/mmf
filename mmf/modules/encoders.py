@@ -197,6 +197,7 @@ class ImageEncoderTypes(Enum):
     default = "default"
     identity = "identity"
     torchvision_resnet = "torchvision_resnet"
+    resnet34 = 'resnet34'
     resnet152 = "resnet152"
     detectron2_resnet = "detectron2_resnet"
 
@@ -220,6 +221,12 @@ class ImageEncoderFactory(EncoderFactory):
             self.module.out_dim = params.in_dim
         elif self._type == "resnet152":
             self.module = ResNet152ImageEncoder(params)
+        elif self._type == 'resnet50':
+            self.module = ResNet50ImageEncoder(params)
+        elif self._type == 'resnet34':
+            self.module = ResNet34ImageEncoder(params)
+        elif self._type == 'resnet34_duo_output':
+            self.module = ResNet34DuoOutputImageEncoder(params)
         elif self._type == "torchvision_resnet":
             self.module = TorchvisionResNetImageEncoder(params)
         elif self._type == "detectron2_resnet":
@@ -236,6 +243,167 @@ class ImageEncoderFactory(EncoderFactory):
     def forward(self, image):
         return self.module(image)
 
+@registry.register_encoder("resnet34_duo_output")
+class ResNet34DuoOutputImageEncoder(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "resnet34"
+        pretrained: bool = True
+        # "avg" or "adaptive"
+        pool_type: str = "avg"
+        num_output_features: int = 1
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        self.config = config
+        model = torchvision.models.resnet34(pretrained=config.get("pretrained", True))
+        # load weights pretrained on other datasets or tasks
+        if config.pretrained_model:
+            ckpt = torch.load(config.pretrained_model)['state_dict']
+            state_dict = model.state_dict()
+            for name, param in ckpt.items():
+                if name not in state_dict:
+                    print('Layer {} in the pretrained model does not existed in the training model'.format(name))
+                    continue
+                state_dict[name].copy_(param)
+        modules = list(model.children())[:-2]
+        self.model = nn.Sequential(*modules)
+        pool_func = (
+            nn.AdaptiveAvgPool2d if config.pool_type == "avg" else nn.AdaptiveMaxPool2d
+        )
+        # -1 will keep the original feature size
+        if config.num_output_features_grid == -1:
+            self.pool_grid = nn.Identity()
+        elif config.num_output_features_grid in [1, 2, 3, 5, 7]:
+            self.pool_grid = pool_func((config.num_output_features_grid, 1))
+        elif config.num_output_features_grid == 4:
+            self.pool_grid = pool_func((2, 2))
+        elif config.num_output_features_grid == 6:
+            self.pool_grid = pool_func((3, 2))
+        elif config.num_output_features_grid == 8:
+            self.pool_grid = pool_func((4, 2))
+        elif config.num_output_features_grid == 9:
+            self.pool_grid = pool_func((3, 3))
+        if config.num_output_features_pool == -1:
+            self.pool = nn.Identity()
+        elif config.num_output_features_pool in [1, 2, 3, 5, 7]:
+            self.pool = pool_func((config.num_output_features_pool, 1))
+        elif config.num_output_features_pool == 4:
+            self.pool = pool_func((2, 2))
+        elif config.num_output_features_pool == 6:
+            self.pool = pool_func((3, 2))
+        elif config.num_output_features_pool == 8:
+            self.pool = pool_func((4, 2))
+        elif config.num_output_features_pool == 9:
+            self.pool = pool_func((3, 3))
+        self.out_dim = 512
+    def forward(self, x):
+        # Bx3x224x224 -> Bx512x7x7 -> Bx512xN -> BxNx512
+        x = self.model(x)
+        out_pool = self.pool(x)
+        out_pool = torch.flatten(out_pool, start_dim=2)
+        out_pool = out_pool.transpose(1, 2).contiguous()
+        out_pool = torch.squeeze(out_pool)
+        out_grid = self.pool_grid(x)
+        out_grid = torch.flatten(out_grid, start_dim=2)
+        out_grid = out_grid.transpose(1, 2).contiguous()
+        return out_pool, out_grid  # BxNx512
+
+@registry.register_encoder("resnet34")
+class ResNet34ImageEncoder(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "resnet34"
+        pretrained: bool = True
+        # "avg" or "adaptive"
+        pool_type: str = "avg"
+        num_output_features: int = 1
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        self.config = config
+        model = torchvision.models.resnet34(pretrained=config.get("pretrained", True))
+        # load weights pretrained on other datasets or tasks
+        if config.pretrained_model:
+            ckpt = torch.load(config.pretrained_model)['state_dict']
+            state_dict = model.state_dict()
+            for name, param in ckpt.items():
+                if name not in state_dict:
+                    print('Layer {} in the pretrained model does not existed in the training model'.format(name))
+                    continue
+                state_dict[name].copy_(param)
+        modules = list(model.children())[:-2]
+        self.model = nn.Sequential(*modules)
+        pool_func = (
+            nn.AdaptiveAvgPool2d if config.pool_type == "avg" else nn.AdaptiveMaxPool2d
+        )
+        # -1 will keep the original feature size
+        if config.num_output_features == -1:
+            self.pool = nn.Identity()
+        elif config.num_output_features in [1, 2, 3, 5, 7]:
+            self.pool = pool_func((config.num_output_features, 1))
+        elif config.num_output_features == 4:
+            self.pool = pool_func((2, 2))
+        elif config.num_output_features == 6:
+            self.pool = pool_func((3, 2))
+        elif config.num_output_features == 8:
+            self.pool = pool_func((4, 2))
+        elif config.num_output_features == 9:
+            self.pool = pool_func((3, 3))
+        self.out_dim = 512
+    def forward(self, x):
+        # Bx3x224x224 -> Bx512x7x7 -> Bx512xN -> BxNx512
+        out = self.pool(self.model(x))
+        out = torch.flatten(out, start_dim=2)
+        out = out.transpose(1, 2).contiguous()
+        return out  # BxNx512
+
+# Taken from facebookresearch/mmbt with some modifications
+@registry.register_encoder("resnet50")
+class ResNet50ImageEncoder(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "resnet50"
+        pretrained: bool = True
+        # "avg" or "adaptive"
+        pool_type: str = "avg"
+        num_output_features: int = 1
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        self.config = config
+        model = torchvision.models.resnet50(pretrained=config.get("pretrained", True))
+        # load weights pretrained on other datasets or tasks
+        if config.pretrained_model:
+            ckpt = torch.load(config.pretrained_model)['state_dict']
+            state_dict = model.state_dict()
+            for name, param in ckpt.items():
+                if name not in state_dict:
+                    print('Layer {} in the pretrained model does not existed in the training model'.format(name))
+                    continue
+                state_dict[name].copy_(param)
+        modules = list(model.children())[:-2]
+        self.model = nn.Sequential(*modules)
+        pool_func = (
+            nn.AdaptiveAvgPool2d if config.pool_type == "avg" else nn.AdaptiveMaxPool2d
+        )
+        # -1 will keep the original feature size
+        if config.num_output_features == -1:
+            self.pool = nn.Identity()
+        elif config.num_output_features in [1, 2, 3, 5, 7]:
+            self.pool = pool_func((config.num_output_features, 1))
+        elif config.num_output_features == 4:
+            self.pool = pool_func((2, 2))
+        elif config.num_output_features == 6:
+            self.pool = pool_func((3, 2))
+        elif config.num_output_features == 8:
+            self.pool = pool_func((4, 2))
+        elif config.num_output_features == 9:
+            self.pool = pool_func((3, 3))
+        self.out_dim = 2048
+    def forward(self, x):
+        # Bx3x224x224 -> Bx2048x7x7 -> Bx2048xN -> BxNx2048
+        out = self.pool(self.model(x))
+        out = torch.flatten(out, start_dim=2)
+        out = out.transpose(1, 2).contiguous()
+        return out  # BxNx2048
 
 # Taken from facebookresearch/mmbt with some modifications
 @registry.register_encoder("resnet152")
@@ -549,6 +717,24 @@ class TransformerEncoder(Encoder):
                 self.module = AutoModel.from_pretrained(
                     self.config.bert_model_name, **hf_params
                 )
+
+        if config.pretrained_model:
+            pretrained_state_dict = torch.load(config.pretrained_model)
+            # firstly copy embedding parameters
+            embeddings_state_dict = self.module.embeddings.state_dict()
+            for name in embeddings_state_dict:
+                if 'embeddings.' + name in pretrained_state_dict:
+                    embeddings_state_dict[name].copy_(pretrained_state_dict['embeddings.' + name])
+                else:
+                    print("Skip loading the weight of the layer: {}".format('embeddings.' + name))
+            # then copy encoder parameters
+            encoder_state_dict = self.module.encoder.state_dict()
+            for name in encoder_state_dict:
+                if 'encoder.' + name in pretrained_state_dict:
+                    encoder_state_dict[name].copy_(pretrained_state_dict['encoder.' + name])
+                else:
+                    print("Skip loading the weight of the layer: {}".format('encoder.' + name))
+            print("Loading pretrained weights from the model saved in {}".format(config.pretrained_model))
 
         self.embeddings = self.module.embeddings
         self.original_config = self.config
