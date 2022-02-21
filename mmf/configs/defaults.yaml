@@ -232,6 +232,14 @@ evaluation:
         type: file
         params: {}
 
+# Configuration for inference
+inference:
+    model: null
+    checkpoint_path: null
+    root: null
+    task_type: null
+    difficulty_level: null
+
 # Configuration for models, default configuration files for various models
 # included in MMF can be found under configs directory in root folder
 model_config: {}
