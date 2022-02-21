@@ -351,6 +351,58 @@ class CaptionBleu4Metric(BaseMetric):
 
         return targets.new_tensor(bleu4, dtype=torch.float)
 
+@registry.register_metric("sgl_accuracy")
+class SGLAccuracy(BaseMetric):
+    """
+    Calculate SGLAccuracy. Find more information here_
+    **Key**: ``sgl_accuracy``.
+    """
+    def __init__(self):
+        super().__init__("sgl_accuracy")
+        self.topk = 1
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate vqa accuracy and return it back.
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+        Returns:
+            torch.FloatTensor: VQA Accuracy
+        """
+        state_outputs = model_output["state_scores"]
+        subject_outputs = model_output["subject_scores"]
+        object_outputs = model_output["object_scores"]
+        state_targets = sample_list["state_targets"]
+        subject_targets = sample_list["subject_targets"]
+        object_targets = sample_list["object_targets"]
+        batch_size = state_outputs.shape[0]
+        assert (
+            state_outputs.dim() <= 2 or subject_outputs.dim() <= 2 or object_outputs.dim() <= 2
+        ), "Output from model shouldn't have more than dim 2 for accuracy"
+        assert (
+            state_targets.dim() <= 2 or subject_targets.dim() <= 2 or object_targets.dim() <= 2
+        ), "Expected target shouldn't have more than dim 2 for accuracy"
+        if state_outputs.dim() == 2:
+            state_outputs = state_outputs.topk(self.topk, 1, True, True)[1].t().squeeze()
+        if subject_outputs.dim() == 2:
+            subject_outputs = subject_outputs.topk(self.topk, 1, True, True)[1].t().squeeze()
+        if object_outputs.dim() == 2:
+            object_outputs = object_outputs.topk(self.topk, 1, True, True)[1].t().squeeze()
+        # If more than 1
+        # If last dim is 1, we directly have class indices
+        if state_targets.dim() == 2 and state_targets.size(-1) != 1:
+            state_targets = state_targets.topk(self.topk, 1, True, True)[1].t().squeeze()
+        if subject_targets.dim() == 2 and subject_targets.size(-1) != 1:
+            subject_targets = subject_targets.topk(self.topk, 1, True, True)[1].t().squeeze()
+        if object_targets.dim() == 2 and object_targets.size(-1) != 1:
+            object_targets = object_targets.topk(self.topk, 1, True, True)[1].t().squeeze()
+        state_correct = state_outputs.squeeze() == state_targets.squeeze()
+        subject_correct = subject_outputs.squeeze() == subject_targets.squeeze()
+        object_correct = object_outputs.squeeze() == object_targets.squeeze()
+        correct = state_correct == subject_correct
+        correct = (correct == object_correct).sum().float()
+        print(correct)
+        return correct / batch_size
 
 @registry.register_metric("vqa_accuracy")
 class VQAAccuracy(BaseMetric):
