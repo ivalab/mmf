@@ -30,7 +30,8 @@ class AdamWSkipParamsWithZeroGrad(AdamW):
             for p in group["params"]:
                 if p.grad is None:
                     continue
-                if p.grad.abs().sum().item() == 0:
+                # if p.grad.abs().sum().item() == 0:
+                if not torch.all(p.grad.isfinite()):
                     continue
                 grad = p.grad.data
                 if grad.is_sparse:
