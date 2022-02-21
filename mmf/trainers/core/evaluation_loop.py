@@ -1,8 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-
+import os
 import logging
 from abc import ABC
 from typing import Any, Dict, Tuple, Type
+import time
 
 import torch
 import tqdm
@@ -12,6 +13,7 @@ from mmf.common.report import Report
 from mmf.common.sample import to_device
 from mmf.utils.distributed import gather_tensor, is_main, is_xla
 
+import cv2
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +25,34 @@ class TrainerEvaluationLoopMixin(ABC):
         meter = Meter()
         reporter = self.dataset_loader.get_test_reporter(dataset_type)
         use_cpu = self.config.evaluation.get("use_cpu", False)
+        visualize = self.config.evaluation.get("visualize", True)
         loaded_batches = 0
         skipped_batches = 0
+
+        vocab_state = {}
+        vocab_object = {}
+        if visualize:
+            cv2.namedWindow('image', cv2.WINDOW_AUTOSIZE)
+
+            with open('/home/ruinian/.cache/torch/mmf/data/datasets/sgl/defaults/extras/vocabs/state_sgl.txt',
+                      'r') as f:
+                state = f.readline()
+                idx = 0
+                while state:
+                    vocab_state[idx] = state
+
+                    idx += 1
+                    state = f.readline()
+
+            with open('/home/ruinian/.cache/torch/mmf/data/datasets/sgl/defaults/extras/vocabs/object_sgl.txt',
+                      'r') as f:
+                obj = f.readline()
+                idx = 0
+                while obj:
+                    vocab_object[idx] = obj
+
+                    idx += 1
+                    obj = f.readline()
 
         with torch.no_grad():
             self.model.eval()
@@ -33,8 +61,13 @@ class TrainerEvaluationLoopMixin(ABC):
                 dataloader = reporter.get_dataloader()
                 combined_report = None
 
+                correct_prediction = 0
+                total_sample = 0
+
                 if self._can_use_tqdm(dataloader):
                     dataloader = tqdm.tqdm(dataloader, disable=disable_tqdm)
+
+                total_time_cost = 0.
                 for batch in dataloader:
                     # Do not timeout quickly on first batch, as workers might start at
                     # very different times.
@@ -46,9 +79,55 @@ class TrainerEvaluationLoopMixin(ABC):
                             logger.info("Skip batch due to uneven batch sizes.")
                             skipped_batches += 1
                             continue
+
+                        start = time.time()
                         model_output = self.model(prepared_batch)
+                        total_time_cost += time.time() - start
+
                         report = Report(prepared_batch, model_output)
                         report = report.detach()
+
+                        batch_size = prepared_batch['image_id'].size()[0]
+                        total_sample += batch_size
+                        for idx in range(batch_size):
+                            state_score = model_output['state_scores'][idx, :]
+                            subject_score = model_output['subject_scores'][idx, :]
+                            object_score = model_output['object_scores'][idx, :]
+                            state_target = prepared_batch['state_targets'][idx, 0]
+                            subject_target = prepared_batch['subject_targets'][idx, 0]
+                            object_target = prepared_batch['object_targets'][idx, 0]
+
+                            func = torch.nn.Softmax(dim=0)
+                            state_score = func(state_score)
+                            subject_score = func(subject_score)
+                            object_score = func(object_score)
+                            state_pred = torch.argmax(state_score, dim=0)
+                            subject_pred = torch.argmax(subject_score, dim=0)
+                            object_pred = torch.argmax(object_score, dim=0)
+
+                            if state_target == state_pred and subject_target == subject_pred and \
+                                object_target == object_pred:
+                                correct_prediction += 1
+
+                            if visualize:
+                                image_id = prepared_batch['image_id'][idx]
+                                image = cv2.imread(os.path.join(
+                                    '/home/ruinian/.cache/torch/mmf/data/datasets/sgl/defaults/images/val',
+                                    '{}.png'.format(image_id)))
+                                natural_language = prepared_batch['text'][idx][1:-1]
+
+                                cv2.imshow('image', image)
+                                print(' '.join(natural_language[:]))
+
+                                print("Groundtruth: PDDL goal state: {} {} {}".format(
+                                    vocab_state[int(state_target.cpu().numpy())],
+                                    vocab_object[int(subject_target.cpu().numpy())],
+                                    vocab_object[int(object_target.cpu().numpy())]))
+                                print("Prediction: PDDL goal state: {} {} {}".format(
+                                    vocab_state[int(state_pred.cpu().numpy())],
+                                    vocab_object[int(subject_pred.cpu().numpy())],
+                                    vocab_object[int(object_pred.cpu().numpy())]))
+                                cv2.waitKey(1)
 
                         meter.update_from_report(report)
 
@@ -84,6 +163,8 @@ class TrainerEvaluationLoopMixin(ABC):
                         if single_batch is True:
                             break
 
+                logger.info("Averged time cost: {}".format(total_time_cost / total_sample))
+                logger.info("TRT accuracy: {}".format(float(correct_prediction/total_sample)))
                 logger.info(f"Finished training. Loaded {loaded_batches}")
                 logger.info(f" -- skipped {skipped_batches} batches.")
 
@@ -113,6 +194,7 @@ class TrainerEvaluationLoopMixin(ABC):
 
         return combined_report, meter
 
+
     def prediction_loop(self, dataset_type: str) -> None:
         reporter = self.dataset_loader.get_test_reporter(dataset_type)
         skipped_batches = 0
@@ -125,6 +207,7 @@ class TrainerEvaluationLoopMixin(ABC):
                 dataloader = reporter.get_dataloader()
                 if self._can_use_tqdm(dataloader):
                     dataloader = tqdm.tqdm(dataloader)
+
                 for batch in dataloader:
                     # Do not timeout quickly on first batch, as workers might start at
                     # very different times.
