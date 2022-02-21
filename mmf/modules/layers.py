@@ -727,6 +727,22 @@ class BranchCombineLayer(nn.Module):
 
         return feat[0]
 
+class TwoBranchCombineLayer(nn.Module):
+    """Two-branch fusion module used to fuse MCAN, modified from
+    https://arxiv.org/abs/2004.11883
+    """
+    def __init__(self, img_dim: int, ques_dim: int):
+        super().__init__()
+        self.out_dim = img_dim * 2
+        self.linear_cga = nn.Linear(img_dim, self.out_dim)
+        self.linear_ques = nn.Linear(ques_dim, self.out_dim)
+        self.layer_norm = nn.LayerNorm(self.out_dim)
+    def forward(
+        self, v_cga: torch.Tensor, q: torch.Tensor
+    ) -> torch.Tensor:
+        feat = self.layer_norm(self.linear_ques(q) + self.linear_cga(v_cga))
+        return feat
+
 
 class AttnPool1d(nn.Module):
     """An attention pooling layer that learns weights using an mlp"""
@@ -739,7 +755,8 @@ class AttnPool1d(nn.Module):
             nn.Dropout(p=dropout),
             nn.Linear(num_features // 2, num_attn),
         )
-        self.p_attn = torch.tensor(float("nan"))
+        # self.p_attn = torch.tensor(float("nan"))
+        self.p_attn = None
         self.num_attn = num_attn
 
     def forward(
@@ -753,8 +770,8 @@ class AttnPool1d(nn.Module):
         if mask is not None:
             score.data.masked_fill_(mask.unsqueeze(1), -10000.0)
         p_attn = nn.functional.softmax(score, dim=-1)
-        if self.training:
-            self.p_attn = p_attn
+        # if self.training:
+        #     self.p_attn = p_attn
 
         return torch.matmul(p_attn, value).view(b, self.num_attn, -1)
 

@@ -621,3 +621,24 @@ class TwoBranchEmbedding(nn.Module):
         x_cbn = self.cbn(x, v)
 
         return x_sga, x_cbn
+
+class MCANEmbedding(nn.Module):
+    """Attach MoVie into MCAN model as a counting module in
+    https://arxiv.org/abs/2004.11883
+    """
+    def __init__(self, embedding_dim: int, **kwargs):
+        super().__init__()
+        hidden_dim = kwargs.get("hidden_dim", 512)
+        self.sga = SGAEmbedding(embedding_dim, **kwargs)
+        self.sga_pool = AttnPool1d(hidden_dim, 1)
+        # self.out_dim = hidden_dim
+    def forward(
+        self,
+        x: torch.Tensor,
+        y: torch.Tensor,
+        x_mask: torch.Tensor,
+        y_mask: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        x_sga = self.sga(x, y, x_mask, y_mask)
+        x_sga = self.sga_pool(x_sga, x_sga, x_mask).squeeze(1)
+        return x_sga
