@@ -43,8 +43,21 @@ the robustness of the framework to novel scenarios.
 ## Vision and Language Symbolic Goal Learning
 
 ### Installation
+This work is built based on the codebase of mmf. Follow installation instructions provided in their [document](https://mmf.sh/docs/). 
 
 ### Usage
+Dataset should be downloaded and placed under the folder of `/home/account_name/.cache/torch/mmf/data/datasets`
+
+To train the model with grid feature, BERT and concatenation, run the following command under the root folder:
+~~~
+mmf_run config=projects/resnet_bert_concat/configs/gt_rtr/defaults.yaml model=resnet_bert_concat dataset=gt_rtr run_type=train training.evaluation_interval=6444
+~~~
+
+To evaluate the model with grid feature, BERT and concatenation, first download the pretrained model and place it in the folder of `saved_models`. Then run the following
+command:
+~~~
+mmf_run config=projects/resnet_bert_concat/configs/sgl/defaults.yaml model=resnet_bert_concat dataset=sgl run_type=test checkpoint.resume_file=/path_to_mmf/saved_models/resnet_bert_concat/model.ckpt
+~~~
 
 ### Development
 
