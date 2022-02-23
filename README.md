@@ -50,7 +50,7 @@ Dataset should be downloaded and placed under the folder of `/home/account_name/
 
 To train the model with grid feature, BERT and concatenation, run the following command under the root folder:
 ~~~
-mmf_run config=projects/resnet_bert_concat/configs/gt_rtr/defaults.yaml model=resnet_bert_concat dataset=gt_rtr run_type=train training.evaluation_interval=6444
+mmf_run config=projects/resnet_bert_concat/configs/sgl/defaults.yaml model=resnet_bert_concat dataset=sgl run_type=train training.evaluation_interval=6444
 ~~~
 
 To evaluate the model with grid feature, BERT and concatenation, first download the pretrained model and place it in the folder of `saved_models`. Then run the following
