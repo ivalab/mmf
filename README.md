@@ -60,6 +60,11 @@ mmf_run config=projects/resnet_bert_concat/configs/sgl/defaults.yaml model=resne
 ~~~
 
 ### Development
+To develop further advanced models or your own tasks, we will first recommend you to refer to the official [tutorial](https://mmf.sh/docs/). We will also provide a brief introduction.
+
+If you'd like to evaluate or propose some other models consist of different components not benchmarked in this work, you could first create the corresponding model such as resnet_bert_add.py under the folder of `mmf/models`. Since different visual and linguistic encoders require different data processors, we might need to change the `defaults.yaml` under 'mmf/configs/datasets/sgl/'. The current yaml file is set for grid feature and BERT. Other three types of yaml files are provided. b represents BERT, g represents grid, r represents region and no label is for LSTM. Lastly, you will need to create a yaml file under `projects/your_model_name/configs/sgl` which documents training policy.
+
+If you'd like to employ this codebase on your own tasks, you may need to create a new dataset, create a new evaluation metric and even add a new loss. mmf provides official tutorials for all these modifications. You could also refer to the implementation of SGL dataset for the reference.
 
 ## Scene Graph Parsing
 The potential issue of vague or ambiguous natural language is that it can't deterministically
