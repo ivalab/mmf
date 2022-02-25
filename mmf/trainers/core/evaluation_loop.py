@@ -61,8 +61,9 @@ class TrainerEvaluationLoopMixin(ABC):
                 dataloader = reporter.get_dataloader()
                 combined_report = None
 
-                correct_prediction = 0
-                total_sample = 0
+                correct_prediction, total_sample = 0
+                correct_valid, correct_invalid = 0
+                total_valid, total_invalid = 0
 
                 if self._can_use_tqdm(dataloader):
                     dataloader = tqdm.tqdm(dataloader, disable=disable_tqdm)
@@ -97,6 +98,11 @@ class TrainerEvaluationLoopMixin(ABC):
                             subject_target = prepared_batch['subject_targets'][idx, 0]
                             object_target = prepared_batch['object_targets'][idx, 0]
 
+                            if subject_target == 1 or object_target == 1:
+                                total_invalid += 1
+                            else:
+                                total_valid += 1
+
                             func = torch.nn.Softmax(dim=0)
                             state_score = func(state_score)
                             subject_score = func(subject_score)
@@ -108,6 +114,11 @@ class TrainerEvaluationLoopMixin(ABC):
                             if state_target == state_pred and subject_target == subject_pred and \
                                 object_target == object_pred:
                                 correct_prediction += 1
+
+                                if subject_target == 1 or object_target == 1:
+                                    correct_invalid += 1
+                                else:
+                                    correct_valid += 1
 
                             if visualize:
                                 image_id = prepared_batch['image_id'][idx]
@@ -164,7 +175,9 @@ class TrainerEvaluationLoopMixin(ABC):
                             break
 
                 logger.info("Averged time cost: {}".format(total_time_cost / total_sample))
-                logger.info("TRT accuracy: {}".format(float(correct_prediction/total_sample)))
+                logger.info("GRL accuracy: {}".format(float(correct_prediction / total_sample)))
+                logger.info("VSR accuracy: {}".format(float(correct_valid / total_valid)))
+                logger.info("ISR accuracy: {}".format(float(correct_invalid / total_invalid)))
                 logger.info(f"Finished training. Loaded {loaded_batches}")
                 logger.info(f" -- skipped {skipped_batches} batches.")
 
