@@ -129,7 +129,7 @@ assigned based on the following rules:
 The dataset is also stored in [**SmartTech**]().
 
 ## Data Generation
-We employ opensourced simulator AI2THOR to generate our datasets for both symbolic goal learning and scene graph parsing, which share the same images in the train and test splits. All ground-truth information are automatically stored, which is labor-free. The code is stored in this [repo](https://github.com/ivalab/SGL_SGP_data_generator/blob/main/README.md).
+We employ opensourced simulator AI2THOR to generate our datasets for both symbolic goal learning and scene graph parsing, which share the same images in the train and test splits. All ground-truth information are automatically stored, which is labor-free. The code is stored in this [repo](https://github.com/ivalab/SGL_SGP_data_generator).
 
 ## Manipulation Experiment
 
