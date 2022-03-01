@@ -87,7 +87,7 @@ Even though being structured via quite different words, explicit instruction and
 the similar semantic meaning in the robotic task domain. 
 To learn such kind of embeddings for both types of natural language, we propose to 
 pretrain the linguistic encoder on semantic textual similarity task. 
-Code for pretraining BERT on semantic textual similarity task is provided [**here**]().
+Code for pretraining BERT on semantic textual similarity task is provided [**here**](https://github.com/ivalab/sentence-transformers).
 
 ## Dataset
 There are three proposed datasets in this work for vision-and-language symbolic goal learning,
