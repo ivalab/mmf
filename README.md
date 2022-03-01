@@ -133,8 +133,6 @@ We employ opensourced simulator AI2THOR to generate our datasets for both symbol
 
 ## Manipulation Experiment
 
-## License
-
 ## Citation
 
 If you find this work is helpful and use it in your work, please cite:
