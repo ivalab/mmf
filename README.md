@@ -2,7 +2,7 @@
 
 <img width="385" alt="1645388250(1)" src="https://user-images.githubusercontent.com/27162640/154862585-a4e5f8a7-01a6-4e06-ae1b-65f57e7653ec.png">
 
->[**SGL: Symbolic Goal Learning for Human Instruction Following in Robot Manipulation**](),
+>[**SGL: Symbolic Goal Learning for Human Instruction Following in Robot Manipulation**](https://arxiv.org/abs/2202.12912),
 > Ruinian Xu, Hongyi, Chen, Yunzhi, Lin and Patricio A. Vela
 
 ## Table of Contents
@@ -136,3 +136,14 @@ We employ opensourced simulator AI2THOR to generate our datasets for both symbol
 ## License
 
 ## Citation
+
+If you find this work is helpful and use it in your work, please cite:
+
+```bibtex
+@article{xu2022sgl,
+  title={SGL: Symbolic Goal Learning for Human Instruction Following in Robot Manipulation},
+  author={Xu, Ruinian and Chen, Hongyi and Lin, Yunzhi, and Vela, Patricio A},
+  journal={arXiv preprint arXiv:2202.12912},
+  year={2022}
+}
+```
