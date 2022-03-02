@@ -77,7 +77,7 @@ Applying this insight in vision-and-langauge goal learning framework, we propose
 pretrain the visual encoder on scene graph parsing tasks.
 Scene graph parsing task in deep learning can be formulated as detecting a list of objects
 and classifying their relationships. 
-Code for pretraining scene graph parsing can be referred to [**here**]().
+Code for pretraining scene graph parsing can be referred to [**here**](https://github.com/ivalab/Scene_Graph_Parsing).
 
 ## Semantic Textual Similarity
 Beyond explicit human instruction, we further include implicit human intent as natural language input in this work.
