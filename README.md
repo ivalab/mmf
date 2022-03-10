@@ -44,6 +44,8 @@ the robustness of the framework to novel scenarios.
 
 ### Installation
 This work is built based on the codebase of mmf. Follow installation instructions provided in their [document](https://mmf.sh/docs/). 
+Before building the mmf library, it is better to first install pytorch based on your own CUDA version. 
+You will also need to install ```future``` and ```opencv-python```.
 
 ### Usage
 Dataset should be downloaded and placed under the folder of `/home/account_name/.cache/torch/mmf/data/datasets`
