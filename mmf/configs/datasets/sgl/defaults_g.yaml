@@ -1,26 +1,26 @@
 dataset_config:
-  gt_rtr:
+  sgl:
       data_dir: ${env.data_dir}/datasets
       depth_first: false
       fast_read: false
       use_images: true
       use_features: false
       zoo_requirements:
-      - gt_rtr.defaults
+      - sgl.defaults
       images:
         train:
-        - gt_rtr/defaults/images/train
+        - sgl/defaults/images/train
         val:
-        - gt_rtr/defaults/images/val
+        - sgl/defaults/images/val
         test:
-        - gt_rtr/defaults/images/test
+        - sgl/defaults/images/test
       annotations:
         train:
-        - gt_rtr/defaults/annotations/imdb_train.npy
+        - sgl/defaults/annotations/imdb_train.npy
         val:
-        - gt_rtr/defaults/annotations/imdb_val.npy
+        - sgl/defaults/annotations/imdb_val.npy
         test:
-        - gt_rtr/defaults/annotations/imdb_test.npy
+        - sgl/defaults/annotations/imdb_test.npy
       max_features: 100
       processors:
         image_processor:
@@ -46,15 +46,15 @@ dataset_config:
             vocab:
               type: intersected
               embedding_name: glove.6B.300d
-              vocab_file: gt_rtr/defaults/extras/vocabs/vocabulary_100k.txt
+              vocab_file: sgl/defaults/extras/vocabs/vocabulary_100k.txt
             preprocessor:
               type: simple_sentence
               params: {}
         answer_processor:
-          type: rtr_result
+          type: sgl_result
           params:
-            vocab_state_file: gt_rtr/defaults/extras/vocabs/state_gtrtr.txt
-            vocab_object_file: gt_rtr/defaults/extras/vocabs/object_gtrtr.txt
+            vocab_state_file: sgl/defaults/extras/vocabs/state_gtrtr.txt
+            vocab_object_file: sgl/defaults/extras/vocabs/object_gtrtr.txt
             preprocessor:
               type: simple_word
               params: {}
