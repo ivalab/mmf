@@ -77,7 +77,7 @@ Applying this insight in vision-and-langauge goal learning framework, we propose
 pretrain the visual encoder on scene graph parsing tasks.
 Scene graph parsing task in deep learning can be formulated as detecting a list of objects
 and classifying their relationships. 
-Code for pretraining scene graph parsing can be referred to [**here**]().
+Code for pretraining scene graph parsing can be referred to [**here**](https://github.com/ivalab/Scene_Graph_Parsing).
 
 ## Semantic Textual Similarity
 Beyond explicit human instruction, we further include implicit human intent as natural language input in this work.
@@ -100,7 +100,7 @@ The dataset is generated via [**AI2THOR**](https://ai2thor.allenai.org/) and the
 PDDL goal state is automatically annotated. To be noticed, besides imperfect natural language, 
 we further consider the scenario with imperfect vision where partial or full objects involved
 in the task miss in the image. With such kind of image, the proposed network is required to 
-predict the missing object to be unknown. The dataset is stored in [**SmartTech**]().
+predict the missing object to be unknown. The dataset is stored in [**SmartTech**](http://hdl.handle.net/1853/66305).
 
 ### Scene Graph Parsing
 The Scene Graph Parsing dataset is also generated via AI2THOR.
@@ -109,7 +109,7 @@ attributes and relationships.
 It covers 32 categories, 4 affordances and 5 attributes. 
 The ground-truth bounding box, category, affordance and attribute
 are automatically annotated during the generation process, which is labor-free.
-The dataset is also stored in [**SmartTech**]().
+The dataset is also stored in [**SmartTech**](http://hdl.handle.net/1853/66303).
 
 ### Semantic Textual Similarity
 The Semantic Textual Similarity dataset is generating for learning similar
@@ -126,12 +126,14 @@ assigned based on the following rules:
 - 3.3 if sentences match either subject or object, and 
 - 1.7 if sentences describe the same task.
 
-The dataset is also stored in [**SmartTech**]().
+The dataset is also stored in [**SmartTech**](http://hdl.handle.net/1853/66304).
 
 ## Data Generation
 We employ opensourced simulator AI2THOR to generate our datasets for both symbolic goal learning and scene graph parsing, which share the same images in the train and test splits. All ground-truth information are automatically stored, which is labor-free. The code is stored in this [repo](https://github.com/ivalab/SGL_SGP_data_generator).
 
 ## Manipulation Experiment
+We evaluate the proposed framework for human instruction following with a list of daily activities in the Simular AI2THOR. 
+All data and code are stored [here](https://github.com/ivalab/me_sgl).
 
 ## Citation
 
