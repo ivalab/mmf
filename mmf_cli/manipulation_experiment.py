@@ -59,7 +59,7 @@ def evaluation_loop(root_path, task_path, diff_level_path, inferencer):
         cv2.imshow('RGB Image', img)
         print("Paired natural language: {}".format(text))
         print("Predicted PDDL goal state: {} {} {}".format(action_pr, subject_pr, object_pr))
-        cv2.waitKey(0)
+        cv2.waitKey(30)
 
 if __name__ == "__main__":
     main()
