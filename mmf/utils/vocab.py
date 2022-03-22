@@ -121,6 +121,9 @@ class BaseVocab:
         self.total_predefined = len(self.itos.keys())
 
         if vocab_file is not None:
+            if 'gt_rtr' in vocab_file:
+                vocab_file = vocab_file.replace('gt_rtr', 'sgl')
+
             if not os.path.isabs(vocab_file) and data_dir is not None:
                 vocab_file = os.path.join(data_dir, vocab_file)
                 vocab_file = get_absolute_path(vocab_file)

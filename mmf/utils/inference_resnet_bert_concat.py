@@ -27,7 +27,7 @@ class Inference_R_B_C:
 
     def _build_model(self):
         self.model_items = load_pretrained_model(self.checkpoint)
-        self.config = OmegaConf.create(self.model_items["full_config"])
+        # self.config = OmegaConf.create(self.model_items["full_config"])
         dataset_name = list(self.config.dataset_config.keys())[0]
         processor = build_processors(
             self.config.dataset_config[dataset_name].processors

@@ -53,6 +53,8 @@ def evaluation_loop(root_path, task_path, diff_level_path, inferencer):
             text = f.readline().split('\n')[0]
 
         action_pr, subject_pr, object_pr = inferencer.forward(img_path, text)
+        with open(os.path.join(path, 'pred_pddl_goal_state.txt'), 'w') as f:
+            f.write(action_pr + ' ' + subject_pr + ' ' + object_pr)
 
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         cv2.namedWindow('RGB Image', cv2.WINDOW_AUTOSIZE)
