@@ -237,6 +237,7 @@ inference:
     model: null
     checkpoint_path: null
     root: null
+    save_root: null
     task_type: null
     difficulty_level: null
 

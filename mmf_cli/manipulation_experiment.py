@@ -28,32 +28,34 @@ def main():
         inferencer = Inference_R_B_TT(config.inference.checkpoint_path, config)
 
     root = config.inference.root
+    save_root = config.inference.save_root
     task_type = config.inference.task_type
     difficulty_level = config.inference.difficulty_level
 
     if task_type is not None:
         if difficulty_level is not None:
-            evaluation_loop(root, task_type, difficulty_level, inferencer)
+            evaluation_loop(root, save_root, task_type, difficulty_level, inferencer)
         else:
             for difficulty_level in os.listdir(os.path.join(root, task_type)):
-                evaluation_loop(root, task_type, difficulty_level, inferencer)
+                evaluation_loop(root, save_root, task_type, difficulty_level, inferencer)
     else:
         for task_type in os.listdir(root):
             if difficulty_level is not None:
-                evaluation_loop(root, task_type, difficulty_level, inferencer)
+                evaluation_loop(root, save_root, task_type, difficulty_level, inferencer)
             else:
                 for difficulty_level in os.listdir(os.path.join(root, task_type)):
-                    evaluation_loop(root, task_type, difficulty_level, inferencer)
+                    evaluation_loop(root, save_root, task_type, difficulty_level, inferencer)
 
-def evaluation_loop(root_path, task_path, diff_level_path, inferencer):
+def evaluation_loop(root_path, save_root_path, task_path, diff_level_path, inferencer):
     for folder in sorted(os.listdir(os.path.join(root_path, task_path, diff_level_path))):
         path = os.path.join(root_path, task_path, diff_level_path, folder)
+        save_path = os.path.join(save_root_path, task_path, diff_level_path, folder)
         img_path = os.path.join(path, 'rgb_image.png')
         with open(os.path.join(path, 'natural_language.txt'), 'r') as f:
             text = f.readline().split('\n')[0]
 
         action_pr, subject_pr, object_pr = inferencer.forward(img_path, text)
-        with open(os.path.join(path, 'pred_pddl_goal_state.txt'), 'w') as f:
+        with open(os.path.join(save_path, 'pred_pddl_goal_state.txt'), 'w') as f:
             f.write(action_pr + ' ' + subject_pr + ' ' + object_pr)
 
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)

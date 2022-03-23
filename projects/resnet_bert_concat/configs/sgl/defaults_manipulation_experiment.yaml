@@ -2,6 +2,7 @@ inference:
   model: resnet_bert_concat
   checkpoint_path: ../me_sgl/pretrained_model/sgl_model.ckpt
   root: ../me_sgl/data/
+  save_root: ../me_sgl/result/
   task_type: cut_task
   difficulty_level: easy
 
