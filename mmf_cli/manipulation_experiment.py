@@ -49,7 +49,16 @@ def main():
 def evaluation_loop(root_path, save_root_path, task_path, diff_level_path, inferencer):
     for folder in sorted(os.listdir(os.path.join(root_path, task_path, diff_level_path))):
         path = os.path.join(root_path, task_path, diff_level_path, folder)
-        save_path = os.path.join(save_root_path, task_path, diff_level_path, folder)
+        save_path = os.path.join(save_root_path, task_path)
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+        save_path = os.path.join(save_path, diff_level_path)
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+        save_path = os.path.join(save_path, folder)
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+
         img_path = os.path.join(path, 'rgb_image.png')
         with open(os.path.join(path, 'natural_language.txt'), 'r') as f:
             text = f.readline().split('\n')[0]

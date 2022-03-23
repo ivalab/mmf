@@ -4,7 +4,7 @@ inference:
   root: ../me_sgl/data/
   save_root: ../me_sgl/result/
   task_type: cut_task
-  difficulty_level: easy
+  difficulty_level: hard2
 
 env:
   data_dir: ${env.cache_dir}/data
