@@ -55,7 +55,7 @@ To train the model with grid feature, BERT and concatenation, run the following 
 mmf_run config=projects/resnet_bert_concat/configs/sgl/defaults.yaml model=resnet_bert_concat dataset=sgl run_type=train training.evaluation_interval=6444
 ~~~
 
-To evaluate the model with grid feature, BERT and concatenation, first download the pretrained model and place it in the folder of `saved_models`. Then run the following
+To evaluate the model with grid feature, BERT and concatenation, first download the [pretrained model](https://www.dropbox.com/sh/cld9n5jvg2vc2v5/AACrl8CmX4fIqT9rckdzjPnQa?dl=0) and place it in the folder of `saved_models`. Then run the following
 command:
 ~~~
 mmf_run config=projects/resnet_bert_concat/configs/sgl/defaults.yaml model=resnet_bert_concat dataset=sgl run_type=test checkpoint.resume_file=/path_to_mmf/saved_models/resnet_bert_concat/model.ckpt
